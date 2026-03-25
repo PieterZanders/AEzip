@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 import mdtraj as md
 import torch
-from sklearn.preprocessing import MinMaxScaler
 
 from .prep.featurize import (
     build_topology_dict, build_reslib_dict, get_dihedral_indices_and_names,
