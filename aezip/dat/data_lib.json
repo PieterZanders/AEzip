@@ -1,0 +1,1148 @@
+{
+    "data_library": {
+        "residue_codes": {
+            "protein": ["ALA", "CYS", "ASP", "GLU", "PHE", "GLY",
+                "HIS", "ILE", "LYS", "LEU", "MET", "ASN", "PRO",
+                "GLN", "ARG", "SER", "THR", "VAL", "TRP", "TYR",
+                "ACE", "NME"
+            ],
+            "protein1": {
+                "A": "ALA",
+                "C": "CYS",
+                "D": "ASP",
+                "E": "GLU",
+                "F": "PHE",
+                "G": "GLY",
+                "H": "HIS",
+                "I": "ILE",
+                "K": "LYS",
+                "L": "LEU",
+                "M": "MET",
+                "N": "ASN",
+                "P": "PRO",
+                "Q": "GLN",
+                "R": "ARG",
+                "S": "SER",
+                "T": "THR",
+                "V": "VAL",
+                "W": "TRP",
+                "Y": "TYR"
+            },
+            "dna": ["DA", "DC", "DG", "DT"],
+            "rna": ["A", "C", "G", "U"],
+            "cap_residues": ["ACE", "NME"]
+        },
+        "canonical_codes": {
+            "ASH": "ASP",
+            "GLH": "GLU",
+            "HIE": "HIS",
+            "HID": "HIS",
+            "HIP": "HIS",
+            "CYX": "CYS",
+            "CYM": "CYS",
+            "ARN": "ARG",
+            "LYN": "LYS",
+            "TYM": "TYR"
+        },
+        "addH_check_residues": ["ASP", "GLU", "HIS", "LYS", "ARG", "CYS", "TYR"],
+        "addH_std_ion": {
+            "ASP": {
+                "std": "ASP",
+                "pK": 4.5,
+                "lowpH": "ASH",
+                "highpH": "ASP"
+            },
+            "GLU": {
+                "std": "GLU",
+                "pK": 4.5,
+                "lowpH": "GLH",
+                "highpH": "GLU"
+            },
+            "HIS": {
+                "std": "HIE",
+                "pK": 6.5,
+                "lowpH": "HIP",
+                "highpH": "HIE"
+            },
+            "ARG": {
+                "std": "ARG",
+                "pK": 12.5,
+                "lowpH": "ARG",
+                "highpH": "ARN"
+            },
+            "LYS": {
+                "std": "LYS",
+                "pK": 10.8,
+                "lowpH": "LYS",
+                "highpH": "LYN"
+            },
+            "CYS": {
+                "std": "CYS",
+                "pK": 8.3,
+                "lowpH": "CYS",
+                "highpH": "CYM"
+            },
+            "TYR": {
+                "std": "TYR",
+                "pK": 10.9,
+                "lowpH": "TYR",
+                "highpH": "TYM"
+            }
+        },
+        "atom_data": {
+            "metal_atoms": [
+                "MG", "MN", "MO", "Mg2", "Mn2", "Ca2", "ZN", "NI", "FE",
+                "Zn2", "Ni2", "Fe2", "CO", "CU", "HG", "Co2", "Cu2",
+                "CD", "AG", "AU", "Cd2", "CA", "Ca"
+            ]
+        },
+        "atom_type_ff": ["ADT", "CMIP"],
+        "residue_data": {
+            "*": {
+                "bck_atoms": {
+                    "protein": ["N", "CA", "C", "O"],
+                    "rna": ["C1'", "C2'", "O2'", "C3'", "O3'", "C4'", "O4'", "C5'", "O5'"],
+                    "dna": ["C1'", "C2'", "C3'", "O3'", "C4'", "O4'", "C5'", "O5'"]
+                },
+                "polar_donor_atoms": ["N", "O4'", "O3'", "O2'"],
+                "polar_acceptor_atoms": ["O", "OXT", "OP1", "OP2", "O2'", "O3'", "O4'", "05'"],
+                "negative_atoms": ["OXT", "OP1", "OP2"],
+                "apolar_atoms": ["CA", "C", "C1'", "C2'", "C3'", "C4'", "C5'"]
+            },
+            "ACE": {
+                "bck_atoms": ["CA", "C", "O"],
+                "side_atoms": [],
+                "apolar_atoms": [],
+                "hydrogen_atoms": [],
+                "addH_rules": {},
+                "mutation_rules": {}
+            },
+            "NME": {
+                "bck_atoms": ["N", "CA"],
+                "side_atoms": [],
+                "apolar_atoms": [],
+                "hydrogen_atoms": [],
+                "addH_rules": {},
+                "mutation_rules": {}
+            },
+            "ALA": {
+                "side_atoms": ["CB"],
+                "apolar_atoms": ["CB"],
+                "hydrogen_atoms": ["HB1", "HB2", "HB3"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "N"],
+                        "ats": ["HB1", "HB2", "HB3"]
+                    }
+                }
+            },
+            "CYS": {
+                "side_atoms": ["CB", "SG"],
+                "apolar_atoms": ["CB"],
+                "hydrogen_atoms": {
+                    "CYS": ["HB2", "HB3", "HG"],
+                    "CYM": ["HB2", "HB3"],
+                    "CYX": ["HB2", "HB3"]
+                },
+                "addH_rules": {
+                    "CYS": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "SG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "SG": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CA"],
+                            "ats": ["HG"]
+                        }
+                    },
+                    "CYM": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "SG"],
+                            "ats": ["HB2", "HB3"]
+                        }
+                    },
+                    "CYX": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "SG"],
+                            "ats": ["HB2", "HB3"]
+                        }
+                    }
+                }
+            },
+            "ASP": {
+                "side_atoms": ["CB", "CG", "OD1", "OD2"],
+                "apolar_atoms": ["CB", "CG"],
+                "hydrogen_atoms": {
+                    "ASP": ["HB2", "HB3"],
+                    "ASH": ["HB2", "HB3", "HD2"]
+                },
+                "addH_rules": {
+                    "ASP": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        }
+                    },
+                    "ASH": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "*": {
+                            "mode": "L",
+                            "ats": ["HD2"]
+                        }
+                    }
+
+                },
+                "polar_acceptor_atoms": ["OD1", "OD2"],
+                "negative_atoms": ["OD1", "OD2"]
+            },
+            "GLU": {
+                "side_atoms": ["CB", "CG", "CD", "OE1", "OE2"],
+                "apolar_atoms": ["CB", "CG", "CD"],
+                "hydrogen_atoms": {
+                    "GLU": ["HB2", "HB3", "HG2", "HG3"],
+                    "GLH": ["HB2", "HB3", "HG2", "HG3", "HE2"]
+                },
+                "addH_rules": {
+                    "GLU": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CD"],
+                            "ats": ["HG2", "HG3"]
+                        }
+                    },
+                    "GLH": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CD"],
+                            "ats": ["HG2", "HG3"]
+                        },
+                        "*": {
+                            "mode": "L",
+                            "ats": ["HE2"]
+                        }
+                    }
+                },
+                "polar_acceptor_atoms": ["OE1", "OE2"],
+                "negative_atoms": ["OE1", "OE2"]
+            },
+            "PHE": {
+                "side_atoms": ["CB", "CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
+                "apolar_atoms": ["CB", "CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
+                "hydrogen_atoms": {
+                    "PHE": ["HB2", "HB3", "HD1", "HE1", "HZ", "HE2", "HD2"],
+                    "PHE2": []
+                },
+                "addH_rules": {
+                    "PHE": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CD1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD1"]
+                        },
+                        "CE1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD1", "CG"],
+                            "ats": ["HE1"]
+                        },
+                        "CZ": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CE1", "CD1"],
+                            "ats": ["HZ"]
+                        },
+                        "CE2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD2", "CG"],
+                            "ats": ["HE2"]
+                        },
+                        "CD2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD2"]
+                        }
+                    }
+                }
+            },
+            "GLY": {
+                "side_atoms": [],
+                "apolar_atoms": []
+            },
+            "HIS": {
+                "aliases": ["HID", "HIE", "HIP"],
+                "side_atoms": ["CB", "CG", "ND1", "CE1", "NE2", "CD2"],
+                "apolar_atoms": ["CB", "CG", "CE1", "CD2"],
+                "hydrogen_atoms": {
+                    "HID": ["HB2", "HB3", "HD1", "HE1", "HD2"],
+                    "HIE": ["HB2", "HB3", "HE1", "HE2", "HD2"],
+                    "HIP": ["HB2", "HB3", "HD1", "HE1", "HE2", "HD2"]
+                },
+                "addH_rules": {
+                    "HIE": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CA"],
+                            "ats": ["HD2"]
+                        },
+                        "CE1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["ND1", "CG"],
+                            "ats": ["HE1"]
+                        },
+                        "NE2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CE1", "ND1"],
+                            "ats": ["HE2"]
+                        }
+                    },
+                    "HID": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CA"],
+                            "ats": ["HD2"]
+                        },
+                        "ND1": {
+                            "mode": "L",
+                            "dist": 1.010,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD1"]
+                        },
+                        "CE1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["ND1", "CG"],
+                            "ats": ["HE1"]
+                        }
+                    },
+                    "HIP": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CA"],
+                            "ats": ["HD2"]
+                        },
+                        "ND1": {
+                            "mode": "L",
+                            "dist": 1.010,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD1"]
+                        },
+                        "CE1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["ND1", "CG"],
+                            "ats": ["HE1"]
+                        },
+                        "NE2": {
+                            "mode": "L",
+                            "dist": 1.010,
+                            "ref_ats": ["CD2", "CG"],
+                            "ats": ["HE2"]
+                        }
+                    }
+                }
+            },
+            "ILE": {
+                "side_atoms": ["CB", "CG2", "CG1", "CD1"],
+                "apolar_atoms": ["CB", "CG2", "CG1", "CD1"],
+                "hydrogen_atoms": ["HB", "HG21", "HG22", "HG23", "HG12", "HG13", "HD11", "HD12", "HD13"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B1",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "CG1", "CG2"],
+                        "ats": ["HB"]
+                    },
+                    "CG1": {
+                        "mode": "B2",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "CD1"],
+                        "ats": ["HG12", "HG13"]
+                    },
+                    "CG2": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "CA"],
+                        "ats": ["HG21", "HG22", "HG23"]
+                    },
+                    "CD1": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CG1", "CB"],
+                        "ats": ["HD11", "HD12", "HD13"]
+                    }
+                }
+            },
+            "LYS": {
+                "side_atoms": ["CB", "CG", "CD", "CE", "NZ"],
+                "apolar_atoms": ["CB", "CG", "CD", "CE"],
+                "hydrogen_atoms": {
+                    "LYS": ["HB2", "HB3", "HG2", "HG3", "HD2", "HD3", "HE2", "HE3", "HZ1", "HZ2", "HZ3"],
+                    "LYN": ["HB2", "HB3", "HG2", "HG3", "HD2", "HD3", "HE2", "HE3", "HZ2", "HZ3"]
+                },
+                "addH_rules": {
+                    "LYS": {
+                        "CB": {
+                            "dist": 1.090,
+                            "mode": "B2",
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CD"],
+                            "ats": ["HG2", "HG3"]
+                        },
+                        "CD": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CE"],
+                            "ats": ["HD2", "HD3"]
+                        },
+                        "CE": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CD", "NZ"],
+                            "ats": ["HE2", "HE3"]
+                        },
+                        "NZ": {
+                            "mode": "L",
+                            "dist": 1.010,
+                            "ref_ats": ["CE", "CD"],
+                            "ats": ["HZ1", "HZ2", "HZ3"]
+                        }
+                    },
+                    "LYN": {
+                        "CB": {
+                            "dist": 1.090,
+                            "mode": "B2",
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CD"],
+                            "ats": ["HG2", "HG3"]
+                        },
+                        "CD": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CE"],
+                            "ats": ["HD2", "HD3"]
+                        },
+                        "CE": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CD", "NZ"],
+                            "ats": ["HE2", "HE3"]
+                        },
+                        "*": {
+                            "mode": "L",
+                            "ats": ["HZ2", "HZ3"]
+                        }
+                    }
+                },
+                "polar_donor_atoms": ["NZ"],
+                "positive_atoms": ["NZ"]
+            },
+            "LEU": {
+                "side_atoms": ["CB", "CG", "CD1", "CD2"],
+                "apolar_atoms": ["CB", "CG", "CD1", "CD2"],
+                "hydrogen_atoms": ["HB2", "HB3", "HG", "HD11", "HD12", "HD13", "HD21", "HD22", "HD23"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B2",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "CG"],
+                        "ats": ["HB2", "HB3"]
+                    },
+                    "CG": {
+                        "mode": "B1",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "CD1", "CD2"],
+                        "ats": ["HG"]
+                    },
+                    "CD1": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CG", "CB"],
+                        "ats": ["HD11", "HD12", "HD13"]
+                    },
+                    "CD2": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CG", "CB"],
+                        "ats": ["HD21", "HD22", "HD23"]
+                    }
+                }
+            },
+            "MET": {
+                "side_atoms": ["CB", "CG", "SD", "CE"],
+                "apolar_atoms": ["CB", "CG", "CE"],
+                "hydrogen_atoms": ["HB2", "HB3", "HG2", "HG3", "HE1", "HE2", "HE3"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B2",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "CG"],
+                        "ats": ["HB2", "HB3"]
+                    },
+                    "CG": {
+                        "mode": "B2",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "SD"],
+                        "ats": ["HG2", "HG3"]
+                    },
+                    "CE": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["SD", "CG"],
+                        "ats": ["HE1", "HE2", "HE3"]
+                    }
+                },
+                "polar_acceptor_atoms": ["SD"]
+            },
+            "ASN": {
+                "side_atoms": ["CB", "CG", "OD1", "ND2"],
+                "apolar_atoms": ["CB", "CG"],
+                "hydrogen_atoms": {
+                    "ASN": ["HB2", "HB3", "HD21", "HD22"],
+                    "ASN2": []
+                },
+                "addH_rules": {
+                    "ASN": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "ND2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD21", "HD22"]
+                        }
+                    }
+                },
+                "polar_acceptor_atoms": ["OD1"],
+                "polar_donor_atoms": ["ND2"],
+                "amide_atoms": ["OD1", "ND2"]
+            },
+            "PRO": {
+                "side_atoms": ["CB", "CG", "CD"],
+                "apolar_atoms": ["CB", "CG", "CD"],
+                "hydrogen_atoms": ["HB2", "HB3", "HG2", "HG3", "HD2", "HD3"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B2",
+                        "dist": 1.080,
+                        "ref_ats": ["CA", "CG"],
+                        "ats": ["HB2", "HB3"]
+                    },
+                    "CG": {
+                        "mode": "B2",
+                        "dist": 1.080,
+                        "ref_ats": ["CB", "CD"],
+                        "ats": ["HG2", "HG3"]
+                    },
+                    "CD": {
+                        "mode": "B2",
+                        "dist": 1.080,
+                        "ref_ats": ["CG", "N"],
+                        "ats": ["HD2", "HD3"]
+                    }
+                }
+            },
+            "GLN": {
+                "side_atoms": ["CB", "CG", "CD", "OE1", "NE2"],
+                "apolar_atoms": ["CB", "CG", "CD"],
+                "hydrogen_atoms": {
+                    "GLN": ["HB2", "HB3", "HG2", "HG3", "HE21", "HE22"],
+                    "GLN2": []
+                },
+                "addH_rules": {
+                    "GLN": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CB", "CD"],
+                            "ats": ["HG3", "HG2"]
+                        },
+                        "NE2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD", "CG"],
+                            "ats": ["HE21", "HE22"]
+                        }
+                    }
+                },
+                "polar_acceptor_atoms": ["OE1"],
+                "polar_donor_atoms": ["NE2"],
+                "amide_atoms": ["OE1", "NE2"]
+            },
+            "ARG": {
+                "side_atoms": ["CB", "CG", "CD", "NE", "CZ", "NH1", "NH2"],
+                "apolar_atoms": ["CB", "CG", "CD", "CZ"],
+                "hydrogen_atoms": {
+                    "ARG": ["HB2", "HB3", "HG2", "HG3", "HD2", "HD3", "HE", "HH11", "HH12", "HH21", "HH22"],
+                    "ARN": ["HB2", "HB3", "HG2", "HG3", "HD2", "HD3", "HH11", "HH12", "HH21", "HH22"]
+                },
+                "addH_rules": {
+                    "ARG": {
+                        "CB": {
+                            "mode": "B2",
+                            "ref_ats": ["CA", "CG"],
+                            "dist": 1.090,
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "ref_ats": ["CB", "CD"],
+                            "dist": 1.090,
+                            "ats": ["HG2", "HG3"]
+                        },
+                        "CD": {
+                            "mode": "B2",
+                            "ref_ats": ["CG", "NE"],
+                            "dist": 1.090,
+                            "ats": ["HD2", "HD3"]
+                        },
+                        "NE": {
+                            "mode": "S2",
+                            "ref_ats": ["CD", "CZ"],
+                            "dist": 1.010,
+                            "ats": ["HE"]
+                        },
+                        "NH1": {
+                            "mode": "L",
+                            "ref_ats": ["CZ", "NE"],
+                            "dist": 1.010,
+                            "ats": ["HH11", "HH12"]
+                        },
+                        "NH2": {
+                            "mode": "L",
+                            "ref_ats": ["CZ", "NE"],
+                            "dist": 1.010,
+                            "ats": ["HH21", "HH22"]
+                        }
+                    },
+                    "ARN": {
+                        "CB": {
+                            "mode": "B2",
+                            "ref_ats": ["CA", "CG"],
+                            "dist": 1.090,
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CG": {
+                            "mode": "B2",
+                            "ref_ats": ["CB", "CD"],
+                            "dist": 1.090,
+                            "ats": ["HG2", "HG3"]
+                        },
+                        "CD": {
+                            "mode": "B2",
+                            "ref_ats": ["CG", "NE"],
+                            "dist": 1.090,
+                            "ats": ["HD2", "HD3"]
+                        },
+                        "*": {
+                            "mode": "L",
+                            "ats": ["HH11", "HH12", "HH21", "HH22"]
+                        }
+                    }
+                },
+                "positive_atoms": ["NE", "NH1", "NH2"],
+                "polar_donor_atoms": ["NE", "NH1", "NH2"]
+            },
+            "SER": {
+                "side_atoms": ["CB", "OG"],
+                "apolar_atoms": ["CB"],
+                "hydrogen_atoms": ["HB2", "HB3", "HG"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B2",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "OG"],
+                        "ats": ["HB2", "HB3"]
+                    }
+                }
+            },
+            "THR": {
+                "side_atoms": ["CB", "CG2", "OG1"],
+                "apolar_atoms": ["CB", "CG2"],
+                "hydrogen_atoms": ["HB", "HG21", "HG22", "HG23", "HG1"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B1",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "CG2", "OG1"],
+                        "ats": ["HB"]
+                    },
+                    "CG2": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "OG1"],
+                        "ats": ["HG21", "HG22", "HG23"]
+                    }
+                },
+                "chiral_atoms": ["OG1", "CG2"]
+            },
+            "VAL": {
+                "side_atoms": ["CB", "CG1", "CG2"],
+                "apolar_atoms": ["CB", "CG1", "CG2"],
+                "hydrogen_atoms": ["HB", "HG11", "HG12", "HG13", "HG21", "HG22", "HG23"],
+                "addH_rules": {
+                    "CB": {
+                        "mode": "B1",
+                        "dist": 1.090,
+                        "ref_ats": ["CA", "CG1", "CG2"],
+                        "ats": ["HB"]
+                    },
+                    "CG1": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "CA"],
+                        "ats": ["HG11", "HG12", "HG13"]
+                    },
+                    "CG2": {
+                        "mode": "L",
+                        "dist": 1.090,
+                        "ref_ats": ["CB", "CA"],
+                        "ats": ["HG21", "HG22", "HG23"]
+                    }
+                }
+            },
+            "TRP": {
+                "side_atoms": ["CB", "CG", "CD1", "NE1", "CE2", "CZ2", "CH2", "CZ3", "CE3", "CD2"],
+                "apolar_atoms": ["CB", "CG", "CD1", "CE2", "CZ2", "CH2", "CZ3", "CE3", "CD2"],
+                "hydrogen_atoms": {
+                    "TRP": ["HB2", "HB3", "HD1", "HE1", "HZ2", "HH2", "HZ3", "HE3"],
+                    "TRP2": []
+                },
+                "addH_rules": {
+                    "TRP": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CD1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD1"]
+                        },
+                        "NE1": {
+                            "mode": "L",
+                            "dist": 1.010,
+                            "ref_ats": ["CD1", "CG"],
+                            "ats": ["HE1"]
+                        },
+                        "CZ2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CE2", "CD2"],
+                            "ats": ["HZ2"]
+                        },
+                        "CH2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CZ2", "CE2"],
+                            "ats": ["HH2"]
+                        },
+                        "CZ3": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CE2", "CD2"],
+                            "ats": ["HZ3"]
+                        },
+                        "CE3": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD2", "CG"],
+                            "ats": ["HE3"]
+                        }
+                    }
+                },
+                "polar_donor_atoms": ["NE1"]
+            },
+            "TYR": {
+                "side_atoms": ["CB", "CG", "CD1", "CE1", "CZ", "OH", "CE2", "CD2"],
+                "apolar_atoms": ["CB", "CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
+                "hydrogen_atoms": {
+                    "TYR": ["HB2", "HB3", "HD1", "HE1", "HH", "HE2", "HD2"],
+                    "TYM": ["HB2", "HB3", "HD1", "HE1", "HE2", "HD2"]
+                },
+                "addH_rules": {
+                    "TYR": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "CD1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD1"]
+                        },
+                        "CE1": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD1", "CG"],
+                            "ats": ["HE1"]
+                        },
+                        "CZ": {
+                            "mode": "L",
+                            "dist": 0.960,
+                            "ref_ats": ["CE1", "CD1"],
+                            "ats": []
+                        },
+                        "CE2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CD2", "CG"],
+                            "ats": ["HE2"]
+                        },
+                        "CD2": {
+                            "mode": "L",
+                            "dist": 1.090,
+                            "ref_ats": ["CG", "CB"],
+                            "ats": ["HD2"]
+                        }
+                    },
+                    "TYM": {
+                        "CB": {
+                            "mode": "B2",
+                            "dist": 1.090,
+                            "ref_ats": ["CA", "CG"],
+                            "ats": ["HB2", "HB3"]
+                        },
+                        "*": {
+                            "mode": "L",
+                            "ats": ["HD1", "HE1", "HE2", "HD2"]
+                        }
+                    }
+                }
+            },
+            "DG": {
+                "polar_acceptor_atoms": ["N7", "O6", "N3"],
+                "polar_donor_atoms": ["N1", "N2"],
+                "side_atoms": ["N9", "C8", "N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                "hydrogen_atoms": ["H1", "H21", "H22", "H8"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H8", "H1", "H21", "H22"]
+                    }
+                },
+                "mutation_rules": {
+                    "DA": {
+                        "Del": ["N2"],
+                        "Mov": ["O6-N6"]
+                    },
+                    "DC": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "O6", "N2", "N7"],
+                        "Add": ["C5", "C4", "N4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    },
+                    "DG": {},
+                    "DT": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "O6", "N2", "N7"],
+                        "Add": ["C5", "C7", "C4", "O4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    }
+                }
+            },
+            "DC": {
+                "polar_acceptor_atoms": ["O2", "N3"],
+                "polar_donor_atoms": ["N4"],
+                "side_atoms": ["N1", "C6", "C5", "C4", "N4", "N3", "C2", "O2"],
+                "hydrogen_atoms": ["H6", "H5", "H41", "H42"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H6", "H5", "H41", "H42"]
+                    }
+                },
+                "mutation_rules": {
+                    "DA": {
+                        "Del": ["C2", "O2", "N3", "C4", "N4", "C5"],
+                        "Add": ["N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "DC": {},
+                    "DG": {
+                        "Del": ["C2", "O2", "N3", "C4", "N4", "C5"],
+                        "Add": ["N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "DT": {
+                        "Mov": ["N4-O4"],
+                        "Add": ["C7"]
+                    }
+                }
+            },
+            "DA": {
+                "polar_acceptor_atoms": ["N7", "N3", "N1"],
+                "polar_donor_atoms": ["N6"],
+                "side_atoms": ["N9", "C8", "N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                "hydrogen_atoms": ["H8", "H61", "H62", "H2"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H8", "H61", "H62", "H2"]
+                    }
+                },
+                "mutation_rules": {
+                    "DA": {},
+                    "DC": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "N6", "N7"],
+                        "Add": ["C5", "C4", "N4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    },
+                    "DG": {
+                        "Mov": ["N6-O6"],
+                        "Add": ["N2"]
+                    },
+                    "DT": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "N6", "N7"],
+                        "Add": ["C5", "C7", "C4", "O4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    }
+                }
+            },
+            "DT": {
+                "polar_acceptor_atoms": ["O2", "O4"],
+                "polar_donor_atoms": ["N3"],
+                "side_atoms": ["N1", "C6", "C5", "C7", "C4", "O4", "N3", "C2", "O2"],
+                "hydrogen_atoms": ["H6", "H71", "H72", "H73", "H3"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H6", "H71", "H72", "H73", "H3"]
+                    }
+                },
+                "mutation_rules": {
+                    "DA": {
+                        "Del": ["C2", "O2", "N3", "C4", "O4", "C5", "C7"],
+                        "Add": ["N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "DC": {
+                        "Mov": ["O4-N4"],
+                        "Del": ["C7"]
+                    },
+                    "DG": {
+                        "Del": ["C2", "O2", "N3", "C4", "O4", "C5", "C7"],
+                        "Add": ["N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "DT": {}
+                }
+            },
+            "G": {
+                "polar_acceptor_atoms": ["N7", "O6", "N3"],
+                "polar_donor_atoms": ["N1", "N2"],
+                "side_atoms": ["N9", "C8", "N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                "hydrogen_atoms": ["H8", "H1", "H21", "H22"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H8", "H1", "H21", "H22"]
+                    }
+                },
+                "mutation_rules": {
+                    "A": {
+                        "Del": ["N2"],
+                        "Mov": ["O6-N6"]
+                    },
+                    "C": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "O6", "N2", "N7"],
+                        "Add": ["C5", "C4", "N4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    },
+                    "G": {},
+                    "U": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "O6", "N2", "N7"],
+                        "Add": ["C5", "C4", "O4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    }
+
+                }
+            },
+            "C": {
+                "polar_acceptor_atoms": ["O2", "N3"],
+                "polar_donor_atoms": ["N4"],
+                "side_atoms": ["N1", "C6", "C5", "C4", "N4", "N3", "C2", "O2"],
+                "hydrogen_atoms": ["H6", "H5", "H41", "H42"],
+                "addH_rules": {},
+                "mutation_rules": {
+                    "A": {
+                        "Del": ["C2", "O2", "N3", "C4", "N4", "C5"],
+                        "Add": ["N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "C": {},
+                    "G": {
+                        "Del": ["C2", "O2", "N3", "C4", "N4", "C5"],
+                        "Add": ["N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "U": {
+                        "Mov": ["N4-O4"]
+                    }
+                }
+            },
+            "A": {
+                "polar_acceptor_atome": ["N7", "N3", "N1"],
+                "polar_donor_atoms": ["N6"],
+                "side_atoms": ["N9", "C8", "N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                "hydrogen_atoms": ["H8", "H61", "H62", "H2"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H8", "H61", "H62", "H2"]
+                    }
+                },
+                "mutation_rules": {
+                    "A": {},
+                    "C": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "N6", "N7"],
+                        "Add": ["C5", "C4", "N4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    },
+                    "G": {
+                        "Mov": ["N6-O6"],
+                        "Add": ["N2"]
+                    },
+                    "U": {
+                        "Del": ["N1", "C2", "N3", "C4", "C5", "C6", "N6", "N7"],
+                        "Add": ["C5", "C4", "O4", "N3", "C2", "O2"],
+                        "Mov": ["N9-N1", "C8-C6"]
+                    }
+                }
+            },
+            "U": {
+                "polar_acceptor_atoms": ["O2", "O4"],
+                "polar_donor_atoms": ["N3"],
+                "side_atoms": ["N1", "C6", "C5", "C4", "O4", "N3", "C2", "O2"],
+                "hydrogen_atoms": ["H6", "H5", "H3"],
+                "addH_rules": {
+                    "*": {
+                        "mode": "L",
+                        "ats": ["H6", "H5", "H3"]
+                    }
+                },
+                "mutation_rules": {
+                    "A": {
+                        "Del": ["C2", "O2", "N3", "C4", "O4", "C5"],
+                        "Add": ["N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "C": {
+                        "Mov": ["O4-N4"]
+                    },
+                    "G": {
+                        "Del": ["C2", "O2", "N3", "C4", "O4", "C5"],
+                        "Add": ["N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"],
+                        "Mov": ["N1-N9", "C6-C8"]
+                    },
+                    "DT": {}
+                }
+            }
+            },
+        "distances": {
+            "SS_DIST": 2.5,
+            "CA_DIST": 3.8,
+            "CA_DIST_ERR": 1.0,
+            "CLASH_DIST": {
+                "severe": 1.0,
+                "apolar": 2.9,
+                "polar": 3.1,
+                "polar_donor": 3.1,
+                "polar_acceptor": 3.1,
+                "positive": 3.5,
+                "negative": 3.5
+            },
+            "MAX_DIST": 4.5,
+            "R_R_CUTOFF": { "PROT": 15.0, "NA": 21.0 },
+            "COVLNK": 2.0,
+            "HBLNK": 3.5
+        }
+
+    }
+}

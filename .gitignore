@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data & model artifacts
+*.npy
+*.npz
+*.pth
+*.ckpt
+*.h5
+*.pkl
+*.pickle
+
+# Trajectory / structure files
+*.xtc
+*.dcd
+*.trr
+*.nc
+*.pdb
+*.gro
+
+# Job scheduler artifacts
+started
+finished
+*.out
+*.err
+*.sh
+
+# Scaler / serialized objects
+scaler.json
+
+# OS
+.DS_Store
+Thumbs.db

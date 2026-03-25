@@ -1,0 +1,87 @@
+{
+    "ALA": {},
+    "GLY": {},
+    "ARG": {
+        "CG": ["CB", "CA", "N"], 
+        "CD": ["CG", "CB", "CA"], 
+        "NE": ["CD", "CG", "CB"], 
+        "CZ": ["NE", "CD", "CG"], 
+        "NH1": ["CZ", "NE", "CD"]
+    },
+    "LYS": {
+        "CG": ["CB", "CA", "N"], 
+        "CD": ["CG", "CB", "CA"], 
+        "CE": ["CD", "CG", "CB"], 
+        "NZ": ["CE", "CD", "CG"]
+    },
+    "GLU": {
+        "CG": ["CB", "CA", "N"], 
+        "CD": ["CG", "CB", "CA"], 
+        "OE1": ["CD", "CG", "CB"]
+    },
+    "GLN": {
+        "CG": ["CB", "CA", "N"], 
+        "CD": ["CG", "CB", "CA"], 
+        "OE1": ["CD", "CG", "CB"]
+    },
+    "ASP": {
+        "CG": ["CB", "CA", "N"], 
+        "OD1": ["CG", "CB", "CA"]
+    },
+    "ASN": {
+        "CG": ["CB", "CA", "N"], 
+        "ND2": ["CG", "CB", "CA"]
+    },
+    "CYS": {
+        "SG": ["CB", "CA", "N"]
+    },
+    "HIS": {
+        "CG": ["CB", "CA", "N"], 
+        "ND1": ["CG", "CB", "CA"]
+    },
+    "ILE": {
+        "CG1": ["CB", "CA", "N"], 
+        "CG2": ["CB", "CA", "N"],
+        "CD1": ["CG1", "CB", "CA"]
+    },
+    "LEU": {
+        "CG": ["CB", "CA", "N"], 
+        "CD1": ["CG", "CB", "CA"]
+    },
+    "MET": {
+        "CG": ["CB", "CA", "N"], 
+        "SD": ["CG", "CB", "CA"], 
+        "CE": ["SD", "CG", "CB"]
+    },
+    "PHE": {
+        "CG": ["CB", "CA", "N"], 
+        "CD1": ["CG", "CB", "CA"]
+    },
+    "TYR": {
+        "CG": ["CB", "CA", "N"], 
+        "CD1": ["CG", "CB", "CA"],
+        "HH": ["OH", "CE1", "CD1"]
+    },
+    "TRP": {
+        "CG": ["CB", "CA", "N"], 
+        "CD1": ["CG", "CB", "CA"]
+    },
+    "THR": {
+        "CG2": ["CB", "CA", "N"],
+        "OG1": ["CB", "CA", "N"],
+        "HG1": ["OG1", "CB", "CA"]
+    },
+    "SER": {
+        "OG": ["CB", "CA", "N"],
+        "HG": ["OG", "CB", "CA"]
+    },
+    "VAL": {
+        "CG1": ["CB", "CA", "N"]
+    },
+    "PRO": {
+        "CD": ["CB", "CA", "N"],
+        "CG": ["N", "CA", "C"]
+    },
+    "ACE": {},
+    "NME": {}
+}
