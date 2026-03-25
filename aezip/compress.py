@@ -1,14 +1,22 @@
 import os
 import json
 import pickle
-import argparse
-from utils import build_reslib_dict, get_dihedral_indices_and_names, convert_full_to_sliced_indices, calculate_dih_traj
-from model import *
-from residue_lib_manager import ResidueLib
+import numpy as np
+import mdtraj as md
+import torch
 from sklearn.preprocessing import MinMaxScaler
 
-res_library = ResidueLib('all_residues.in')
-dihedral_definitions = json.load(open('aa_dih.json'))
+from .prep.featurize import (
+    build_reslib_dict, get_dihedral_indices_and_names,
+    convert_full_to_sliced_indices, calculate_dih_traj,
+)
+from .model.model import *
+from .utils.residue_lib_manager import ResidueLib
+
+_HERE = os.path.dirname(__file__)
+
+res_library = ResidueLib(os.path.join(_HERE, 'dat', 'all_residues.in'))
+dihedral_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_dih.json')))
 
 # Make reslib dictionary
 reslib_dict = build_reslib_dict(res_library)

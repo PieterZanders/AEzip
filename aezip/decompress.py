@@ -1,20 +1,29 @@
 import os
 import json
 import pickle
-import argparse
-from utils import build_topology_dict, build_reslib_dict, get_dihedral_indices_and_names, convert_full_to_sliced_indices, calculate_dih_traj, build_dihedral_atom_indices, build_dih_traj, get_histidine_protonation_states, reconstruct_trajectory
-from model import *
-from modelling import *
-from residue_lib_manager import ResidueLib
+import numpy as np
+import mdtraj as md
+import torch
 from sklearn.preprocessing import MinMaxScaler
 
-res_library = ResidueLib('all_residues.in')
-datlib_dict = json.load(open('data_lib.json'))['data_library']['residue_data']
+from .prep.featurize import (
+    build_topology_dict, build_reslib_dict, get_dihedral_indices_and_names,
+    convert_full_to_sliced_indices, calculate_dih_traj, build_dihedral_atom_indices,
+    build_dih_traj, get_histidine_protonation_states,
+)
+from .model.model import *
+from .utils.modelling import *          # provides reconstruct_trajectory
+from .utils.residue_lib_manager import ResidueLib
+
+_HERE = os.path.dirname(__file__)
+
+res_library = ResidueLib(os.path.join(_HERE, 'dat', 'all_residues.in'))
+datlib_dict = json.load(open(os.path.join(_HERE, 'dat', 'data_lib.json')))['data_library']['residue_data']
 
 topology = md.load("../Data/WT_apo_ChainsA_first.pdb")
 topology_dict = build_topology_dict(topology)
 
-dihedral_definitions = json.load(open('aa_dih.json'))
+dihedral_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_dih.json')))
 dihedral_indices_and_names = get_dihedral_indices_and_names(topology, dihedral_definitions)
 dihedral_atom_indices = build_dihedral_atom_indices(topology, dihedral_definitions)
 
