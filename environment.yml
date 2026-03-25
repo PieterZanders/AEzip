@@ -1,0 +1,39 @@
+name: aezip_env
+
+channels:
+  - pytorch           
+  - dglteam           
+  - conda-forge       
+  - defaults
+
+dependencies:
+  - python=3.12
+
+  # Numerics 
+  - numpy>=1.24
+  - scipy
+
+  # ML framework 
+  - pytorch::pytorch>=2.0         
+  - pytorch::torchvision           
+
+  # MD / structural biology 
+  - conda-forge::mdtraj>=1.9
+  - conda-forge::biopython>=1.81   
+
+  # Machine learning utilities 
+  - conda-forge::scikit-learn>=1.3
+
+  # Graph neural networks (cg2all dependency) 
+  - dglteam::dgl                   
+
+  # extras
+  - conda-forge::jupyterlab
+  - conda-forge::matplotlib
+  - conda-forge::tqdm
+
+  # pip packages 
+  - pip
+  - pip:
+      - cg2all                     
+      - biobb_pytorch
