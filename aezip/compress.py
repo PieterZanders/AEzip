@@ -1,14 +1,17 @@
 import os
 import json
 import pickle
+import argparse
 import numpy as np
 import mdtraj as md
 import torch
+from torch.utils.data import DataLoader
 from sklearn.preprocessing import MinMaxScaler
 
 from .prep.featurize import (
-    build_reslib_dict, get_dihedral_indices_and_names,
-    convert_full_to_sliced_indices, calculate_dih_traj,
+    build_reslib_dict, 
+    get_dihedral_indices_and_names,
+    calculate_dih_traj,
 )
 from .model.model import *
 from .utils.residue_lib_manager import ResidueLib
@@ -17,67 +20,57 @@ _HERE = os.path.dirname(__file__)
 
 res_library = ResidueLib(os.path.join(_HERE, 'dat', 'all_residues.in'))
 dihedral_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_dih.json')))
+cartesian_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_cart.json')))
 
 # Make reslib dictionary
 reslib_dict = build_reslib_dict(res_library)
 
 # Build topology information dictionary
-traj = md.load('../Data/WT_apo_ChainsA.xtc', top='../Data/WT_apo_ChainsA_first.pdb')
+parser = argparse.ArgumentParser(description="Compress a trajectory using an autoencoder.")
+parser.add_argument("-f", "--traj-file", help="Path to the input trajectory (.xtc)")
+parser.add_argument("-s", "--top-file", help="Path to the topology file (.pdb)")
+parser.add_argument("-o", "--output-file", default="./compressed_traj.pth", help="Path to save the compressed trajectory (default: ./compressed_traj.pth)")
+parser.add_argument("-c", "--config-file", default="./config.json", help="Path to the config file (default: ./config.json)")
+args = parser.parse_args()
+
+# load config file
+with open(args.config_file, "r") as f:
+    config = json.load(f)
+    hyperparams = config["hyperparams"]
+    compression_type = config["compression_type"]
+
+traj = md.load(args.traj_file, top=args.top_file, stride=100)
 topology = traj.topology
 
-sliced_traj = traj.atom_slice(traj.topology.select("resid 1"))  #"name N or name CA or name C or resname PRO"))
+if compression_type == "dihedral":
+    sliced_traj = traj.atom_slice(traj.topology.select("name N or name CA or name C or resname PRO"))
+    coord_feat = sliced_traj.xyz.reshape(len(sliced_traj.xyz), -1)
+    dihedral_indices_and_names = get_dihedral_indices_and_names(traj, dihedral_definitions)
+    dih_traj = calculate_dih_traj(traj, dihedral_indices_and_names)
+    raw_feat = np.concatenate((coord_feat, dih_traj), axis=1)
 
-dihedral_indices_and_names = get_dihedral_indices_and_names(traj, dihedral_definitions)
-print("dihedral_indices_and_names")
-
-sliced_indices = convert_full_to_sliced_indices(traj, sliced_traj)
-print("sliced_indices")
-
-# @TODO: I wanna choose which features to use
-coord_feat = sliced_traj.xyz.reshape(len(sliced_traj.xyz), -1)
-dih_traj = calculate_dih_traj(traj, dihedral_indices_and_names)
+elif compression_type == "cartesian":
+    cart_sel = " or ".join(
+        f"(resname {res} and ({' or '.join(f'name {a}' for a in atoms)}))"
+        for res, atoms in cartesian_definitions.items()
+    )
+    sliced_traj = traj.atom_slice(traj.topology.select(cart_sel))
+    raw_feat = sliced_traj.xyz.reshape(len(sliced_traj.xyz), -1)
+else:
+    raise ValueError(f"Invalid compression type: {compression_type}")
 
 scaler = MinMaxScaler(feature_range=(0, 1))
-
-## Autoencoder Input
-if coord_feat is not None:
-    print(np.min(coord_feat), np.max(coord_feat))
-
-if dih_traj is not None:
-    print(np.min(dih_traj), np.max(dih_traj))
-
-raw_feat = np.concatenate((coord_feat, dih_traj), axis=1)
-
 feat = scaler.fit_transform(raw_feat)
 
 # Autoencoder 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# @TODO: put hyperparams in a config folder as json file
-hyperparams = {
-    "input_dim": feat.shape[1],    
-    "layers": 5, 
-    "latent_dim": 512,
-    "learning_rate": 0.0001,
-    "weight_decay": 1e-9,
-    "batch_size": 16,
-    "num_epochs": 100,
-    "dropout": 0.0,
-    "negative_slope": 0.0,
-    "batch_norm": False,
-    "gamma": 0.5,
-    "step_size": 25,
-    "optimizer": "adam",
-    "loss_function": "MSE",
-}
+hyperparams["input_dim"] = feat.shape[1]
 
-
-save_folder = "./"
-
-train_dataloader = torch.utils.data.DataLoader(dataset = torch.FloatTensor(feat), 
-                                               batch_size=hyperparams["batch_size"], 
-                                               drop_last=False, 
-                                               shuffle = False)
+train_dataloader = DataLoader(dataset = torch.FloatTensor(feat), 
+                                   batch_size = hyperparams["batch_size"], 
+                                   drop_last = False, 
+                                   shuffle = False)
 
 model = AutoEncoder(input_dim=hyperparams["input_dim"], 
                     nlayers=hyperparams["layers"], 
@@ -107,5 +100,7 @@ torch.save({
     "decoder_state_dict": model.decoder.state_dict(),
     "compressed_traj": latent,
     "scaler": pickle.dumps(scaler),
-    "hyperparams": hyperparams
-}, os.path.join(save_folder, "compressed_traj.pth"))
+    "hyperparams": hyperparams,
+    "topology": topology,
+    "compressed_topology": sliced_traj.topology
+}, args.output_file)
