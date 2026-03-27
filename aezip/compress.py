@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import pickle
 import argparse
@@ -8,13 +9,16 @@ import torch
 from torch.utils.data import DataLoader
 from sklearn.preprocessing import MinMaxScaler
 
-from .prep.featurize import (
-    build_reslib_dict, 
+# Allow running as `python compress.py` directly from inside aezip/
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from aezip.prep.featurize import (
+    build_reslib_dict,
     get_dihedral_indices_and_names,
     calculate_dih_traj,
 )
-from .model.model import *
-from .utils.residue_lib_manager import ResidueLib
+from aezip.model.model import *
+from aezip.utils.residue_lib_manager import ResidueLib
 
 _HERE = os.path.dirname(__file__)
 
@@ -39,7 +43,7 @@ with open(args.config_file, "r") as f:
     hyperparams = config["hyperparams"]
     compression_type = config["compression_type"]
 
-traj = md.load(args.traj_file, top=args.top_file, stride=100)
+traj = md.load(args.traj_file, top=args.top_file, stride=10)
 topology = traj.topology
 
 if compression_type == "dihedral":
@@ -101,6 +105,6 @@ torch.save({
     "compressed_traj": latent,
     "scaler": pickle.dumps(scaler),
     "hyperparams": hyperparams,
-    "topology": topology,
-    "compressed_topology": sliced_traj.topology
+    "topology": traj[0],
+    "compressed_topology": sliced_traj.topology,
 }, args.output_file)

@@ -1,20 +1,26 @@
 import os
+import sys
 import json
 import pickle
 import argparse
+import tempfile
 import numpy as np
 import mdtraj as md
 import torch
 
-from .prep.featurize import (
+# Allow running as `python decompress.py` directly from inside aezip/
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from aezip.prep.featurize import (
     build_topology_dict, build_reslib_dict, get_dihedral_indices_and_names,
     convert_full_to_sliced_indices, build_dihedral_atom_indices,
-    build_dih_traj, get_histidine_protonation_states,
+    build_dih_traj, get_histidine_protonation_states, get_protonation_states,
 )
-from .backmapping import backmap_trajectory
-from .model.model import *
-from .utils.modelling import *          # provides reconstruct_trajectory
-from .utils.residue_lib_manager import ResidueLib
+from aezip.backmapping import backmap_trajectory
+from aezip.trajectory_backmapping import trajectory_reconstruction
+from aezip.model.model import *
+from aezip.utils.modelling import *          # provides reconstruct_trajectory
+from aezip.utils.residue_lib_manager import ResidueLib
 
 _HERE = os.path.dirname(__file__)
 
@@ -30,6 +36,7 @@ parser = argparse.ArgumentParser(description="Decompress a trajectory using an a
 parser.add_argument("-s", "--top-file", required=True, help="Path to the topology file (.pdb)")
 parser.add_argument("-i", "--input-file", default="./compressed_traj.pth", help="Path to the compressed trajectory (default: ./compressed_traj.pth)")
 parser.add_argument("-o", "--output-file", default="./recon_traj.xtc", help="Path to save the reconstructed trajectory (default: ./recon_traj.xtc)")
+parser.add_argument("-op", "--output-pdb", default="./recon_traj.pdb", help="Path to save the reference PDB frame (default: ./recon_traj.pdb)")
 parser.add_argument("-c", "--config-file", default="../config/config.json", help="Path to the config file (default: ./config.json)")
 args = parser.parse_args()
 
@@ -95,6 +102,21 @@ if compression_type == "dihedral":
     recon_traj = md.Trajectory(recon_traj / 10, topology=topology.topology)
 
 elif compression_type == "cartesian":
-    recon_traj = backmap_trajectory(data, topology, sliced_topology, reslib_dict, cartesian_definitions)
+    partial_traj = md.Trajectory(data.reshape(len(data), -1, 3), topology=sliced_topology.topology)
+    reference_frame = saved_data["topology"]
+    protonation_states = get_protonation_states(reference_frame)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdb") as tmp:
+        reference_pdb = tmp.name
+    reference_frame.save_pdb(reference_pdb)
+    try:
+        recon_traj = trajectory_reconstruction(
+            traj=partial_traj,
+            output_pdb_file=args.output_pdb,
+            output_xtc_file=args.output_file,
+            reference_pdb=reference_pdb,
+            protonation_states=protonation_states,
+        )
+    finally:
+        os.remove(reference_pdb)
 
 recon_traj.save_xtc(args.output_file)
