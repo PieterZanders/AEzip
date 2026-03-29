@@ -3,15 +3,15 @@
     "hyperparams": {
         "layers": 5,
         "latent_dim": 512,
-        "learning_rate": 0.0001,
+        "learning_rate": 0.001,
         "weight_decay": 1e-9,
-        "batch_size": 16,
-        "num_epochs": 10,
+        "batch_size": 64,
+        "num_epochs": 500,
         "dropout": 0.0,
-        "negative_slope": 0.0,
+        "negative_slope": 0.01,
         "batch_norm": false,
         "gamma": 0.5,
-        "step_size": 25,
+        "step_size": 100,
         "optimizer": "adam",
         "loss_function": "MSE"
     }

@@ -74,7 +74,7 @@ hyperparams["input_dim"] = feat.shape[1]
 train_dataloader = DataLoader(dataset = torch.FloatTensor(feat), 
                                    batch_size = hyperparams["batch_size"], 
                                    drop_last = False, 
-                                   shuffle = False)
+                                   shuffle = True)
 
 model = AutoEncoder(input_dim=hyperparams["input_dim"], 
                     nlayers=hyperparams["layers"], 

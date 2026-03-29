@@ -27,7 +27,6 @@ class Encoder(torch.nn.Module):
                 nunits = layer_dim
 
         layers.append(torch.nn.Linear(nunits, latent_dim))
-        layers.append(torch.nn.Sigmoid())
         self.encoder = torch.nn.Sequential(*layers)
 
     def forward(self, x):
@@ -59,7 +58,6 @@ class Decoder(torch.nn.Module):
                 nunits = layer_dim
 
         layers.append(torch.nn.Linear(nunits, output_dim))
-        layers.append(torch.nn.Sigmoid())
         self.decoder = torch.nn.Sequential(*layers)
 
     def forward(self, x):
