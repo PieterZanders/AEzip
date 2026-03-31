@@ -9,6 +9,9 @@ dist/
 build/
 .eggs/
 
+# lightning
+lightning_logs/
+
 # Virtual environments
 venv/
 .venv/
