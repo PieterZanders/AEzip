@@ -1,6 +1,8 @@
 import mdtraj as md
 import numpy as np
 import multiprocessing as mp
+from tqdm import tqdm
+from tqdm import tqdm
 
 def build_topology_dict(traj):
     """
@@ -138,6 +140,86 @@ def get_histidine_protonation_states(traj):
 
     return histidine_states
 
+def get_protonation_states(traj):
+    """
+    Identifies protonation states of all common titratable residues by inspecting
+    the presence or absence of specific hydrogen atoms in the topology.
+
+    Residues and states detected
+    ----------------------------
+    HIS : "HID" (HD1 only), "HIE" (HE2 only), "HIP" (both), "HIS" (neither)
+    LYS : "LYS" (protonated, HZ1+HZ2+HZ3), "LYN" (neutral, missing HZ1)
+    ARG : "ARG" (protonated, HE+HH11+HH12+HH21+HH22), "ARN" (neutral, any missing)
+    ASP : "ASP" (deprotonated, no HD on OD), "ASPH" (protonated, HD2 present)
+    GLU : "GLU" (deprotonated, no HE on OE), "GLUH" (protonated, HE2 present)
+    GLN : "GLN" (standard, HE21+HE22), "GLNH" (non-standard, missing an amide H)
+
+    Parameters
+    ----------
+    traj : md.Trajectory
+
+    Returns
+    -------
+    dict
+        {residue_index: protonation_state_str} for every titratable residue found.
+    """
+    states = {}
+
+    for res in traj.topology.residues:
+        atom_names = {atom.name for atom in res.atoms}
+
+        if res.name in ("HIS", "HID", "HIE", "HIP"):
+            has_hd1 = "HD1" in atom_names
+            has_he2 = "HE2" in atom_names
+            if has_hd1 and has_he2:
+                states[res.index] = "HIP"
+            elif has_hd1:
+                states[res.index] = "HID"
+            elif has_he2:
+                states[res.index] = "HIE"
+            else:
+                states[res.index] = "HIS"
+
+        elif res.name in ("LYS", "LYN"):
+            # Protonated LYS has HZ1, HZ2, HZ3; neutral LYN is missing HZ1
+            if all(h in atom_names for h in ("HZ1", "HZ2", "HZ3")):
+                states[res.index] = "LYS"
+            else:
+                states[res.index] = "LYN"
+
+        elif res.name in ("ARG", "ARN"):
+            # Protonated ARG has HE + four HH atoms; ARN is missing at least one
+            arg_hs = {"HE", "HH11", "HH12", "HH21", "HH22"}
+            if arg_hs.issubset(atom_names):
+                states[res.index] = "ARG"
+            else:
+                states[res.index] = "ARN"
+
+        elif res.name in ("ASP", "ASPH", "ASH"):
+            # Protonated ASP (ASPH/ASH) carries HD2 on OD2
+            if "HD2" in atom_names or "HD1" in atom_names:
+                states[res.index] = "ASPH"
+            else:
+                states[res.index] = "ASP"
+
+        elif res.name in ("GLU", "GLUH", "GLH"):
+            # Protonated GLU carries HE2 on OE2
+            if "HE2" in atom_names or "HE1" in atom_names:
+                states[res.index] = "GLUH"
+            else:
+                states[res.index] = "GLU"
+
+        elif res.name == "GLN":
+            # Standard GLN has HE21 and HE22 on NE2
+            if "HE21" in atom_names and "HE22" in atom_names:
+                states[res.index] = "GLN"
+            else:
+                states[res.index] = "GLNH"
+
+    print("protonation_states: ", states)
+
+    return states
+
 def convert_full_to_sliced_indices(original_traj, sliced_traj):
     sliced_traj_atoms_indices = []
     for atom in sliced_traj.topology.atoms:
@@ -233,6 +315,17 @@ def calculate_dih_traj(traj, dihedral_indices_and_names):
             dih_idx.append(list(sub_dict.values()))
     return np.degrees(md.compute_dihedrals(traj, np.array(dih_idx)))
 
+def _build_dih_frame(args):
+    """Worker: convert one frame (1-D array) into a nested residue→atom→angle dict."""
+    frame, flat_mapping = args
+    frame_dict = {}
+    for residue, atom, col_index in flat_mapping:
+        if residue not in frame_dict:
+            frame_dict[residue] = {}
+        frame_dict[residue][atom] = frame[col_index]
+    return frame_dict
+
+
 def build_dih_traj(dih_traj, mapping):
     flat_mapping = []
     column_index = 0
@@ -241,14 +334,15 @@ def build_dih_traj(dih_traj, mapping):
             flat_mapping.append((residue, atom, column_index))
             column_index += 1
 
-    # Build the output structure
-    atom_angle_mapping = []
-    for frame in dih_traj:
-        frame_dict = {}
-        for residue, atom, col_index in flat_mapping:
-            if residue not in frame_dict:
-                frame_dict[residue] = {}
-            frame_dict[residue][atom] = frame[col_index]
-        atom_angle_mapping.append(frame_dict)
+    n_frames   = len(dih_traj)
+    n_workers  = mp.cpu_count()
+    chunksize  = max(1, n_frames // (n_workers * 4))
+
+    with mp.Pool(processes=n_workers) as pool:
+        atom_angle_mapping = pool.map(
+            _build_dih_frame,
+            [(frame, flat_mapping) for frame in dih_traj],
+            chunksize=chunksize,
+        )
 
     return atom_angle_mapping

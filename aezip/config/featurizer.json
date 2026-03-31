@@ -1,0 +1,12 @@
+{
+    "cartesian": {
+        "cartesian": {"selection": null}
+    },
+    "dihedral": {
+        "cartesian": {"selection": "name N or name CA or name C or resname PRO"}
+    },
+    "cg2all": {
+        "cg_model_type": "CalphaBasedModel", 
+        "batch_size": 64
+    }
+}

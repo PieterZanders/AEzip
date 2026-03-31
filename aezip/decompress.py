@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import pickle
 import argparse
 import tempfile
 import numpy as np
@@ -12,102 +11,90 @@ import torch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from aezip.prep.featurize import (
-    build_topology_dict, build_reslib_dict, get_dihedral_indices_and_names,
+    build_topology_dict, build_reslib_dict,
     convert_full_to_sliced_indices, build_dihedral_atom_indices,
     build_dih_traj, get_histidine_protonation_states, get_protonation_states,
 )
-from aezip.backmapping import backmap_trajectory
-from aezip.trajectory_backmapping import trajectory_reconstruction
-from aezip.model.model import *
-from aezip.utils.modelling import *          # provides reconstruct_trajectory
+from aezip.utils.backmapping import trajectory_reconstruction
+from aezip.utils.modelling import *
 from aezip.utils.residue_lib_manager import ResidueLib
+from biobb_pytorch.mdae.decode_model import EvaluateDecoder
 
 _HERE = os.path.dirname(__file__)
 
-res_library = ResidueLib(os.path.join(_HERE, 'dat', 'all_residues.in'))
-datlib_dict = json.load(open(os.path.join(_HERE, 'dat', 'data_lib.json')))['data_library']['residue_data']
+res_library  = ResidueLib(os.path.join(_HERE, 'dat', 'all_residues.in'))
+datlib_dict  = json.load(open(os.path.join(_HERE, 'dat', 'data_lib.json')))['data_library']['residue_data']
 dihedral_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_dih.json')))
-cartesian_definitions = json.load(open(os.path.join(_HERE, 'config', 'aa_cart.json')))
+reslib_dict  = build_reslib_dict(res_library)
 
-# Make reslib dictionary
-reslib_dict = build_reslib_dict(res_library)
-
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description="Decompress a trajectory using an autoencoder.")
-parser.add_argument("-s", "--top-file", required=True, help="Path to the topology file (.pdb)")
-parser.add_argument("-i", "--input-file", default="./compressed_traj.pth", help="Path to the compressed trajectory (default: ./compressed_traj.pth)")
-parser.add_argument("-o", "--output-file", default="./recon_traj.xtc", help="Path to save the reconstructed trajectory (default: ./recon_traj.xtc)")
-parser.add_argument("-op", "--output-pdb", default="./recon_traj.pdb", help="Path to save the reference PDB frame (default: ./recon_traj.pdb)")
-parser.add_argument("-c", "--config-file", default="../config/config.json", help="Path to the config file (default: ./config.json)")
+parser.add_argument("-i",  "--input-file",  default="./compressed_traj.pth",
+                    help="Compressed trajectory (default: ./compressed_traj.pth)")
+parser.add_argument("-o",  "--output-file", default="./recon_traj.xtc",
+                    help="Output trajectory (default: ./recon_traj.xtc)")
+parser.add_argument("-op", "--output-pdb",  default="./recon_traj.pdb",
+                    help="Output reference PDB (default: ./recon_traj.pdb)")
 args = parser.parse_args()
 
-with open(args.config_file, "r") as f:
-    config = json.load(f)
-    compression_type = config["compression_type"]
+# ---------------------------------------------------------------------------
+# Load compressed data  (topology and compression_type are stored inside)
+# ---------------------------------------------------------------------------
+saved_data       = torch.load(args.input_file, weights_only=False)
+biobb_model      = saved_data["model"]
+z                = saved_data["compressed_traj"]
+hp               = saved_data["hyperparams"]
+stats            = saved_data["stats"]
+use_ae           = saved_data.get("use_ae", biobb_model is not None)
+compression_type = saved_data["compression_type"]
 
-topology = md.load(args.top_file)
+topology      = saved_data["topology"]   # single-frame md.Trajectory saved by compress.py
 topology_dict = build_topology_dict(topology)
+hist_dict     = get_histidine_protonation_states(topology)
 
-dihedral_indices_and_names = get_dihedral_indices_and_names(topology, dihedral_definitions)
-dihedral_atom_indices = build_dihedral_atom_indices(topology, dihedral_definitions)
+print(f"Compressed traj shape: {z.shape}  |  use_ae: {use_ae}")
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-saved_data = torch.load(args.input_file, weights_only=False)
-
-if compression_type == "dihedral":
-    sliced_topology = topology.atom_slice(topology.topology.select("name N or name CA or name C or resname PRO"))
-elif compression_type == "cartesian":
-    compressed_top = saved_data["compressed_topology"]
-    sliced_topology = md.Trajectory(np.zeros((1, compressed_top.n_atoms, 3)), topology=compressed_top)
+# ---------------------------------------------------------------------------
+# Decode
+# ---------------------------------------------------------------------------
+if use_ae:
+    # EvaluateDecoder applies inverse normalisation internally,
+    # so data is already in original coordinate units (nm).
+    ed = EvaluateDecoder(
+        input_model=biobb_model,
+        input_latent=z,
+        properties={"Dataset": {"batch_size": hp["batch_size"]}},
+    )
+    data = ed.run_decoding()["xhat"]
+    if hasattr(data, "numpy"):
+        data = data.numpy()
 else:
-    raise ValueError(f"Invalid compression type: {compression_type}")
+    # Raw features stored directly — inverse-normalise from stats
+    min_vals = stats["min"].numpy() if hasattr(stats["min"], "numpy") else np.array(stats["min"])
+    max_vals = stats["max"].numpy() if hasattr(stats["max"], "numpy") else np.array(stats["max"])
+    data = z * (max_vals - min_vals) + min_vals
 
-sliced_indices = convert_full_to_sliced_indices(topology, sliced_topology)
-residues_list = list(topology.topology.residues)
-hist_dict = get_histidine_protonation_states(topology)
+print(f"Decoded shape: {data.shape}")
 
-# Extract components
-decoder_state_dict = saved_data["decoder_state_dict"]
-latent = saved_data["compressed_traj"]
-scaler = pickle.loads(saved_data["scaler"])
-hyperparams = saved_data["hyperparams"]
+# ---------------------------------------------------------------------------
+# Reconstruct all-atom trajectory
+# ---------------------------------------------------------------------------
+if compression_type == "cartesian":
+    compressed_top = saved_data["compressed_topology"]
+    partial_traj   = md.Trajectory(
+        data.reshape(len(data), -1, 3),
+        topology=compressed_top,
+    )
 
-print('latent', latent.shape)
-decoder = Decoder(latent_dim=hyperparams["latent_dim"], 
-                  nlayers=hyperparams["layers"], 
-                  output_dim=hyperparams["input_dim"],
-                  delta=None, 
-                  dropout=hyperparams["dropout"], 
-                  negative_slope=hyperparams["negative_slope"], 
-                  batch_norm=hyperparams["batch_norm"]).to(device)
-
-latent = torch.utils.data.DataLoader(dataset = torch.FloatTensor(latent), 
-                                     batch_size=hyperparams["batch_size"], 
-                                     drop_last=False, 
-                                     shuffle = False)
-data = decompress(decoder, latent, device)
-print(data.shape)
-
-data = scaler.inverse_transform(data)
-
-if compression_type == "dihedral":
-    backbone_xyz = data[:, :sliced_topology.xyz.shape[1]*3]
-    dih_traj = data[:, (sliced_topology.xyz.shape[1]*3):]
-    sliced_traj = md.Trajectory(backbone_xyz.reshape(len(data), -1, 3), topology=sliced_topology.topology)
-
-    dihedral_mapping = build_dihedral_atom_indices(topology, dihedral_definitions)
-    dihedral_traj = build_dih_traj(dih_traj, dihedral_mapping)
-    recon_traj = reconstruct_trajectory(topology, sliced_traj, sliced_indices, dihedral_traj, dihedral_definitions,
-                               topology_dict, reslib_dict, datlib_dict, hist_dict)
-    print(recon_traj.shape)
-    recon_traj = md.Trajectory(recon_traj / 10, topology=topology.topology)
-
-elif compression_type == "cartesian":
-    partial_traj = md.Trajectory(data.reshape(len(data), -1, 3), topology=sliced_topology.topology)
-    reference_frame = saved_data["topology"]
+    reference_frame    = saved_data["topology"]
     protonation_states = get_protonation_states(reference_frame)
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdb") as tmp:
         reference_pdb = tmp.name
     reference_frame.save_pdb(reference_pdb)
+
     try:
         recon_traj = trajectory_reconstruction(
             traj=partial_traj,
@@ -119,4 +106,67 @@ elif compression_type == "cartesian":
     finally:
         os.remove(reference_pdb)
 
+elif compression_type == "dihedral":
+    compressed_top = saved_data["compressed_topology"]
+    sliced_topology = md.Trajectory(
+        np.zeros((1, compressed_top.n_atoms, 3)),
+        topology=compressed_top,
+    )
+    sliced_indices = convert_full_to_sliced_indices(topology, sliced_topology)
+
+    # Split decoded features using the stored feature indices
+    cart_idx = stats.get("cartesian_indices")
+    dih_idx  = stats.get("dihedral_indices")
+
+    if cart_idx is not None and dih_idx is not None:
+        backbone_xyz = data[:, cart_idx]
+        dih_traj_raw = data[:, dih_idx]
+    else:
+        # Fallback: split by backbone atom count
+        n_backbone = sliced_topology.n_atoms
+        backbone_xyz = data[:, : n_backbone * 3]
+        dih_traj_raw = data[:, n_backbone * 3 :]
+
+    sliced_traj      = md.Trajectory(backbone_xyz.reshape(len(data), -1, 3),
+                                     topology=sliced_topology.topology)
+    dihedral_mapping = build_dihedral_atom_indices(topology, dihedral_definitions)
+    dihedral_traj    = build_dih_traj(dih_traj_raw, dihedral_mapping)
+
+    recon_traj = reconstruct_trajectory(
+        topology, sliced_traj, sliced_indices,
+        dihedral_traj, dihedral_definitions,
+        topology_dict, reslib_dict, datlib_dict, hist_dict,
+    )
+    recon_traj = md.Trajectory(recon_traj / 10, topology=topology.topology)
+
+elif compression_type == "cg2all":
+    import tempfile
+    from aezip.model.cg2all import load_model as _cg2all_load, backmap_to_aa
+
+    cg_model_type = saved_data.get("cg_model_type", "CalphaBasedModel")
+    cg_batch_size = saved_data.get("cg_batch_size", 1)
+
+    cg_device                      = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    gg_model, gg_config, cg_class  = _cg2all_load(cg_model_type, device=cg_device)
+
+    reference_frame = saved_data["topology"]
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdb") as tmp:
+        reference_pdb = tmp.name
+    reference_frame.save_pdb(reference_pdb)
+
+    try:
+        all_xyz = backmap_to_aa(
+            data, reference_pdb,
+            gg_model, gg_config, cg_class,
+            batch_size=cg_batch_size, device=cg_device,
+        )
+    finally:
+        os.remove(reference_pdb)
+
+    recon_traj = md.Trajectory(all_xyz, topology=reference_frame.topology)
+
+else:
+    raise ValueError(f"Unknown compression_type: {compression_type!r}")
+
 recon_traj.save_xtc(args.output_file)
+print(f"Reconstructed trajectory saved to: {args.output_file}")

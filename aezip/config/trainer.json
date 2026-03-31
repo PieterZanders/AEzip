@@ -1,0 +1,15 @@
+{
+    "Dataset": {
+        "shuffle": true,
+        "split": {
+            "random_split": true,
+            "train_prop": 0.9,
+            "val_prop": 0.1
+        }
+    },
+    "Trainer": {
+        "enable_checkpointing": false,
+        "callbacks": {"metrics": ["EarlyStopping"]}
+    },
+    "disable_sandbox": true
+}

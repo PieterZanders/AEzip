@@ -1,0 +1,5 @@
+{
+    "model_type": "AutoEncoder",
+    "encoder": {"activation": "relu", "last_layer_activation": false},
+    "decoder": {"activation": "relu", "last_layer_activation": "sigmoid"}
+}
