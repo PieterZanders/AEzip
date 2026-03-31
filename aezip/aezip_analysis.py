@@ -36,7 +36,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from aezip.utils.diffio import calculate_rmsd_trajectories, calculate_rmsf_trajectories
+from aezip.analysis.diffio import calculate_rmsd_trajectories, calculate_rmsf_trajectories
 
 
 # ---------------------------------------------------------------------------
