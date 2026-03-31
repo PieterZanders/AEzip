@@ -1,19 +1,17 @@
 name: aezip_env
-
 channels:
-  - dglteam           
-  - conda-forge
-  - bioconda      
   - defaults
-
+  - salilab
+  - bioconda
+  - conda-forge
 dependencies:
-  - python=3.12
-
+  - dgl
   - cudatoolkit
-  - dglteam::dgl
-  - bioconda::biobb_pytorch
-  - conda-forge::scikit-learn
-
+  - python=3.12
+  - scikit-learn==1.7.2
+  - ipykernel
+  - modeller
+  - biobb_structure_utils
   - pip
   - pip:
-      - git+http://github.com/huhlim/cg2all@cuda-12
+    - git+https://github.com/bioexcel/biobb_pytorch@dev
