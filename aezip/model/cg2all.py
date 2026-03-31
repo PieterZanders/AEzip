@@ -15,6 +15,7 @@ Three public functions:
 import warnings
 import numpy as np
 import torch
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
@@ -80,6 +81,7 @@ def extract_cg_coords(
     gg_config,
     cg_class,
     batch_size: int = 1,
+    stride: int = 1,
     device: torch.device = None,
 ) -> np.ndarray:
     """Run the cg2all forward pass and return flattened CG bead coordinates.
@@ -117,15 +119,17 @@ def extract_cg_coords(
     loader = dgl.dataloading.GraphDataLoader(pdata, batch_size=1, shuffle=False)
 
     coords_list = []
-    for i, batch in enumerate(loader, 1):
+    pbar = tqdm(loader, desc="Extracting CG coords", unit="frame")
+    for i, batch in enumerate(pbar):
+        if i % stride != 0:
+            continue
         batch = batch.to(device)
         with torch.no_grad():
             out = gg_model.forward(batch)[0]
         R    = out["R"].cpu().numpy()
         mask = batch.ndata["output_atom_mask"].cpu().numpy()
         coords_list.append(R[mask > 0].flatten())
-        if i % 100 == 0:
-            print(f"  Extracted {i} frames...")
+        pbar.set_postfix(kept=len(coords_list))
 
     X = np.vstack(coords_list).astype(np.float32)
     print(f"CG coordinates: {X.shape[0]} frames, {X.shape[1] // 3} beads")
@@ -159,10 +163,9 @@ def backmap_to_aa(
 
     Returns
     -------
-    all_xyz : np.ndarray, shape (n_frames, n_atoms, 3)
+    recon_traj : mdtraj.Trajectory  (n_frames, n_atoms)
     """
     import dgl
-    import cg2all.lib.libcg
     from cg2all.lib.libdata import PredictionData, create_trajectory_from_batch
 
     if device is None:
@@ -179,18 +182,31 @@ def backmap_to_aa(
     topo_loader = dgl.dataloading.GraphDataLoader(pdata, batch_size=1, shuffle=False)
     topo_batch  = next(iter(topo_loader)).to(device)
 
-    n_beads = frames_cg.shape[1] // 3
-    all_xyz = []
-    for i, coords_flat in enumerate(frames_cg):
-        coords = torch.tensor(
-            coords_flat.reshape(n_beads, 3),
-            dtype=torch.float32,
-            device=device,
-        )
-        traj_cg, _ = create_trajectory_from_batch(topo_batch, coords)
-        traj_aa    = cg2all.lib.libcg.backmap(traj_cg)
-        all_xyz.append(traj_aa)
-        if (i + 1) % 100 == 0:
-            print(f"  Backmapped {i + 1} frames...")
+    # cg2all forward output has shape (n_nodes, max_atoms_per_node, 3).
+    # During extraction we stored R[mask > 0].flatten(), so we need the same
+    # mask to rebuild the padded tensor that create_trajectory_from_batch expects.
+    mask    = topo_batch.ndata["output_atom_mask"]  # (n_nodes, max_atoms)
+    n_nodes = mask.shape[0]
+    max_atoms = mask.shape[1] if mask.dim() > 1 else 1
 
-    return np.stack(all_xyz)
+    import mdtraj as md
+
+    all_xyz  = []
+    topology = None
+    for coords_flat in tqdm(frames_cg, desc="Backmapping to all-atom", unit="frame"):
+        # Reconstruct padded (n_nodes, max_atoms, 3) tensor from flat valid coords
+        R_padded = torch.zeros(n_nodes, max_atoms, 3, dtype=torch.float32, device=device)
+        valid_coords = torch.tensor(
+            coords_flat.reshape(-1, 3), dtype=torch.float32, device=device
+        )
+        R_padded[mask > 0] = valid_coords
+
+        # create_trajectory_from_batch returns (List[md.Trajectory], aux)
+        traj_list, _ = create_trajectory_from_batch(topo_batch, R_padded)
+        frame_traj   = traj_list[0]  # batch_size=1 → one trajectory
+
+        all_xyz.append(frame_traj.xyz[0])  # (n_atoms, 3)
+        if topology is None:
+            topology = frame_traj.topology   # same for every frame
+
+    return md.Trajectory(np.stack(all_xyz), topology=topology)

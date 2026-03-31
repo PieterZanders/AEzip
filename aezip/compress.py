@@ -52,6 +52,8 @@ parser.add_argument("-o", "--output-file", default="./compressed_traj.pth",
                     help="Output compressed file (default: ./compressed_traj.pth)")
 parser.add_argument("-c", "--config-file", default="./config/config.json",
                     help="Main config JSON (default: ./config/config.json)")
+parser.add_argument("--stride", type=int, default=1, metavar="N",
+                    help="Use every N-th frame (default: 1, all frames)")
 parser.add_argument("--no-ae", action="store_true",
                     help="Skip autoencoder: save raw features directly "
                          "(featurize only, no training or encoding)")
@@ -76,6 +78,9 @@ if compression_type == "cartesian":
     feat_props = copy.deepcopy(featurizer_config["cartesian"])
     feat_props["cartesian"]["selection"] = _build_cart_selection(cartesian_definitions)
 
+    if args.stride > 1:
+        feat_props["stride"] = args.stride
+
     feat = MDFeaturizer(
         input_topology_path=args.top_file,
         input_trajectory_path=args.traj_file,
@@ -87,7 +92,7 @@ if compression_type == "cartesian":
 elif compression_type == "dihedral":
     # biobb_pytorch does NOT support the custom per-residue dihedrals in
     # aa_dih.json, so we featurize manually and build a compatible stats dict.
-    traj = md.load(args.traj_file, top=args.top_file)
+    traj = md.load(args.traj_file, top=args.top_file, stride=args.stride)
 
     backbone_sel = featurizer_config["dihedral"]["cartesian"]["selection"]
     sliced_traj  = traj.atom_slice(traj.topology.select(backbone_sel))
@@ -139,6 +144,7 @@ elif compression_type == "cg2all":
         gg_config=gg_config,
         cg_class=cg_class,
         batch_size=cg_cfg.get("batch_size", 1),
+        stride=args.stride,
         device=cg_device,
     )   # (n_frames, n_beads * 3)
 

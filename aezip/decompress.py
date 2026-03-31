@@ -71,10 +71,7 @@ if use_ae:
     if hasattr(data, "numpy"):
         data = data.numpy()
 else:
-    # Raw features stored directly — inverse-normalise from stats
-    min_vals = stats["min"].numpy() if hasattr(stats["min"], "numpy") else np.array(stats["min"])
-    max_vals = stats["max"].numpy() if hasattr(stats["max"], "numpy") else np.array(stats["max"])
-    data = z * (max_vals - min_vals) + min_vals
+    data = z
 
 print(f"Decoded shape: {data.shape}")
 
@@ -155,7 +152,7 @@ elif compression_type == "cg2all":
     reference_frame.save_pdb(reference_pdb)
 
     try:
-        all_xyz = backmap_to_aa(
+        recon_traj = backmap_to_aa(
             data, reference_pdb,
             gg_model, gg_config, cg_class,
             batch_size=cg_batch_size, device=cg_device,
@@ -163,10 +160,9 @@ elif compression_type == "cg2all":
     finally:
         os.remove(reference_pdb)
 
-    recon_traj = md.Trajectory(all_xyz, topology=reference_frame.topology)
-
 else:
     raise ValueError(f"Unknown compression_type: {compression_type!r}")
 
 recon_traj.save_xtc(args.output_file)
+recon_traj[0].save_pdb(args.output_pdb)
 print(f"Reconstructed trajectory saved to: {args.output_file}")
