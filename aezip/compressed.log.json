@@ -1,0 +1,38 @@
+{
+  "run_type": "compress",
+  "timestamp": "2026-04-01T00:45:08",
+  "args": {
+    "traj_file": "test/ref/trajs/WT_apo_chA.xtc",
+    "top_file": "test/ref/top/WT_apo_chA.pdb",
+    "output_file": "./compressed.pth",
+    "config_file": "config/config.json",
+    "stride": "100",
+    "no_ae": "True",
+    "ae_input": "None",
+    "ae_output": "None",
+    "log_file": "None"
+  },
+  "steps": [
+    {
+      "name": "Featurize (cartesian)",
+      "duration_s": 8.892
+    },
+    {
+      "name": "Store raw features (no AE)",
+      "duration_s": 0.0
+    },
+    {
+      "name": "Save",
+      "duration_s": 1.483
+    }
+  ],
+  "output_files": [
+    {
+      "label": "compressed",
+      "path": "./compressed.pth",
+      "size_mb": 11.742,
+      "size_kb": 12023.3
+    }
+  ],
+  "total_duration_s": 10.376
+}

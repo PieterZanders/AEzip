@@ -1,5 +1,8 @@
 {
     "model_type": "AutoEncoder",
+    "n_cvs": 64,
+    "encoder_layers": [512, 256, 128],
+    "decoder_layers": [128, 256, 512],
     "encoder": {"activation": "relu", "last_layer_activation": false},
     "decoder": {"activation": "relu", "last_layer_activation": "sigmoid"}
 }

@@ -1,6 +1,18 @@
 """
 cg2all interface for AEzip.
 
+Coarse-grained representation to use:
+- CalphaBasedModel: CA-trace (atom names should be "CA")
+- ResidueBasedModel: Residue center-of-mass (atom names should be "CA")
+- SidechainModel: Sidechain center-of-mass (atom names should be "SC")
+- CalphaCMModel: CA-trace + Residue center-of-mass (atom names should be "CA" and "CM")
+- CalphaSCModel: CA-trace + Sidechain center-of-mass (atom names should be "CA" and "SC")
+- BackboneModel: Model only with backbone atoms (N, CA, C)
+- MainchainModel: Model only with mainchain atoms (N, CA, C, O)
+- Martini: Martini model
+- Martini3: Martini3 model
+- PRIMO: PRIMO model
+
 Three public functions:
     load_model(cg_model_type, checkpoint, device)
         → gg_model, gg_config, cg_class
@@ -117,10 +129,12 @@ def extract_cg_coords(
         batch_size=batch_size,
     )
     loader = dgl.dataloading.GraphDataLoader(pdata, batch_size=1, shuffle=False)
+    n_total  = len(pdata)
+    n_kept   = (n_total + stride - 1) // stride  # ceil division
 
     coords_list = []
-    pbar = tqdm(loader, desc="Extracting CG coords", unit="frame")
-    for i, batch in enumerate(pbar):
+    pbar = tqdm(total=n_kept, desc="Extracting CG coords", unit="frame")
+    for i, batch in enumerate(loader):
         if i % stride != 0:
             continue
         batch = batch.to(device)
@@ -129,7 +143,8 @@ def extract_cg_coords(
         R    = out["R"].cpu().numpy()
         mask = batch.ndata["output_atom_mask"].cpu().numpy()
         coords_list.append(R[mask > 0].flatten())
-        pbar.set_postfix(kept=len(coords_list))
+        pbar.update(1)
+    pbar.close()
 
     X = np.vstack(coords_list).astype(np.float32)
     print(f"CG coordinates: {X.shape[0]} frames, {X.shape[1] // 3} beads")
