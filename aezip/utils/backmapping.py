@@ -10,9 +10,7 @@ import tempfile
 import concurrent.futures
 from tqdm import tqdm
 from biobb_structure_utils.utils.str_check_add_hydrogens import str_check_add_hydrogens   
-from aezip.utils.TopologyManager import *
-from aezip.utils.TrajectoryManager import *
-from aezip.utils.TrajectoryAnalysis import *
+from aezip.utils.TopologyManager import TopologyManager
 
 def remove_log_files():
     """
@@ -165,8 +163,24 @@ def _process_frame(args):
         old_out, old_err = sys.stdout, sys.stderr
         sys.stdout = sys.stderr = devnull
         try:
+            # Step 1: fill in missing heavy atoms with Modeller
             m, _ = add_missing_atoms(tmp_filename)
             m.write(file=tmp_filename)
+
+            # Step 2: add all hydrogens at physiological pH
+            str_check_add_hydrogens(
+                input_structure_path=tmp_filename,
+                output_structure_path=tmp_filename,
+                properties={
+                    'charges': False,
+                    'ph': 7.4,
+                    'keep_canonical_resnames': True,
+                    'keep_h': False,
+                },
+            )
+
+            # Step 3: fix HIS protonation states to match the reference,
+            #         then trim any atoms not present in the reference
             add_missing_hydrogens(
                 pdb_target=tmp_filename,
                 pdb_reference=reference_pdb,

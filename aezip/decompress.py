@@ -48,6 +48,7 @@ args = parser.parse_args()
 # ---------------------------------------------------------------------------
 log_path = args.log_file or (os.path.splitext(args.output_file)[0] + ".log.json")
 logger   = RunLogger(log_path, run_type="decompress", args=vars(args))
+logger.log_input_file(args.input_file, label="compressed")
 
 saved_data       = torch.load(args.input_file, weights_only=False)
 biobb_model      = saved_data["model"]

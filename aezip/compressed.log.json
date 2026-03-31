@@ -1,6 +1,6 @@
 {
   "run_type": "compress",
-  "timestamp": "2026-04-01T00:45:08",
+  "timestamp": "2026-04-01T01:12:09",
   "args": {
     "traj_file": "test/ref/trajs/WT_apo_chA.xtc",
     "top_file": "test/ref/top/WT_apo_chA.pdb",
@@ -12,10 +12,30 @@
     "ae_output": "None",
     "log_file": "None"
   },
+  "input_files": [
+    {
+      "label": "trajectory",
+      "path": "test/ref/trajs/WT_apo_chA.xtc",
+      "size_mb": 718.19,
+      "size_kb": 735426.1
+    },
+    {
+      "label": "topology",
+      "path": "test/ref/top/WT_apo_chA.pdb",
+      "size_mb": 0.596,
+      "size_kb": 610.3
+    },
+    {
+      "label": "config",
+      "path": "config/config.json",
+      "size_mb": 0.0,
+      "size_kb": 0.3
+    }
+  ],
   "steps": [
     {
       "name": "Featurize (cartesian)",
-      "duration_s": 8.892
+      "duration_s": 8.665
     },
     {
       "name": "Store raw features (no AE)",
@@ -23,7 +43,7 @@
     },
     {
       "name": "Save",
-      "duration_s": 1.483
+      "duration_s": 1.414
     }
   ],
   "output_files": [
@@ -34,5 +54,5 @@
       "size_kb": 12023.3
     }
   ],
-  "total_duration_s": 10.376
+  "total_duration_s": 10.079
 }

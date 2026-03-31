@@ -36,6 +36,7 @@ class RunLogger:
         self.run_type   = run_type
         self.args       = {k: str(v) for k, v in (args or {}).items()}
         self.steps: list[dict] = []
+        self.input_files: list[dict] = []
         self.files: list[dict] = []
         self._t0        = time.perf_counter()
         self.timestamp  = datetime.now().isoformat(timespec="seconds")
@@ -50,6 +51,18 @@ class RunLogger:
         dt = time.perf_counter() - t
         self.steps.append({"name": name, "duration_s": round(dt, 3)})
         print(f"  → done in {_fmt_duration(dt)}")
+
+    # ------------------------------------------------------------------
+    def log_input_file(self, path: str, label: str = None):
+        """Record the size of an input file (silently skips if missing)."""
+        if path and os.path.exists(path):
+            size_bytes = os.path.getsize(path)
+            self.input_files.append({
+                "label":   label or os.path.basename(path),
+                "path":    str(path),
+                "size_mb": round(size_bytes / 1_048_576, 3),
+                "size_kb": round(size_bytes / 1_024, 1),
+            })
 
     # ------------------------------------------------------------------
     def log_file(self, path: str, label: str = None):
@@ -69,7 +82,21 @@ class RunLogger:
         total = time.perf_counter() - self._t0
 
         # ---- stdout summary ----
-        w = max((len(s["name"]) for s in self.steps), default=20) + 2
+        all_labels = (
+            [f["label"] for f in self.input_files]
+            + [f["label"] for f in self.files]
+            + [s["name"] for s in self.steps]
+        )
+        w = max((len(l) for l in all_labels), default=20) + 2
+
+        if self.input_files:
+            print("\n" + "─" * (w + 16))
+            print(f"  {'Input file':<{w}} {'Size':>10}")
+            print("─" * (w + 16))
+            for f in self.input_files:
+                size_str = f"{f['size_mb']} MB" if f["size_mb"] >= 1 else f"{f['size_kb']} KB"
+                print(f"  {f['label']:<{w}} {size_str:>10}   {f['path']}")
+
         print("\n" + "─" * (w + 16))
         print(f"  {'Step':<{w}} {'Duration':>10}")
         print("─" * (w + 16))
@@ -80,12 +107,11 @@ class RunLogger:
 
         if self.files:
             print()
-            fw = max((len(f["label"]) for f in self.files), default=20) + 2
-            print(f"  {'File':<{fw}} {'Size':>10}")
-            print("─" * (fw + 16))
+            print(f"  {'Output file':<{w}} {'Size':>10}")
+            print("─" * (w + 16))
             for f in self.files:
                 size_str = f"{f['size_mb']} MB" if f["size_mb"] >= 1 else f"{f['size_kb']} KB"
-                print(f"  {f['label']:<{fw}} {size_str:>10}   {f['path']}")
+                print(f"  {f['label']:<{w}} {size_str:>10}   {f['path']}")
         print("─" * (w + 16))
 
         # ---- JSON log ----
@@ -93,6 +119,7 @@ class RunLogger:
             "run_type":         self.run_type,
             "timestamp":        self.timestamp,
             "args":             self.args,
+            "input_files":      self.input_files,
             "steps":            self.steps,
             "output_files":     self.files,
             "total_duration_s": round(total, 3),
