@@ -14,12 +14,10 @@ setup(
     },
     python_requires=">=3.12",
     install_requires=[
-        "git+https://github.com/bioexcel/biobb_pytorch@dev",
-        "numpy",
-        "torch",
-        "mdtraj",
+        "biobb_pytorch @ git+https://github.com/bioexcel/biobb_pytorch@dev",
+        "modeller",
+        "biobb_structure_utils",
         "scikit-learn",
-        "mlcolvar",
     ],
     entry_points={
         "console_scripts": [
