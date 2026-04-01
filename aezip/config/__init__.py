@@ -20,7 +20,6 @@ def _load(filename: str) -> dict:
 
 cartesian_definitions = _load("aa_cart.json")
 dihedral_definitions  = _load("aa_dih.json")
-config                = _load("config.json")
 featurizer_config     = _load("featurizer.json")
 model_config          = _load("model.json")
 trainer_config        = _load("trainer.json")

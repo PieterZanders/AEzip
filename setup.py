@@ -14,6 +14,7 @@ setup(
     },
     python_requires=">=3.12",
     install_requires=[
+        "git+https://github.com/bioexcel/biobb_pytorch@dev",
         "numpy",
         "torch",
         "mdtraj",
