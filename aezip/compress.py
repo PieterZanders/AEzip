@@ -193,7 +193,7 @@ else:
         em_out = em.run_evaluation()
         z      = em_out["z"]
         xhat   = em_out["xhat"]
-        x_in   = feat.dataset["data"].numpy()
+        x_in   = feat.dataset["data"]
         print(f"  Frames: {len(z)}  |  Latent dim: {z.shape[1]}")
 
     if args.ae_input is not None:
