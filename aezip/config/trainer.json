@@ -1,6 +1,7 @@
 {
     "Dataset": {
         "shuffle": true,
+        "batch_size": 64,
         "split": {
             "random_split": true,
             "train_prop": 0.9,
@@ -8,6 +9,7 @@
         }
     },
     "Trainer": {
+        "max_epochs": 1,
         "enable_checkpointing": false,
         "callbacks": {"metrics": ["EarlyStopping"]}
     },

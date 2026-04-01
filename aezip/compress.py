@@ -12,9 +12,9 @@ from aezip.utils.logger import RunLogger
 
 # Allow running as `python compress.py` directly from inside aezip/
 
-from aezip.config.config import (
+from aezip.config import (
     cartesian_definitions, dihedral_definitions,
-    featurizer_config, model_config, trainer_config,
+    featurizer_config, model_config, trainer_config, evaluator_config,
 )
 from aezip.prep.featurize import get_dihedral_indices_and_names, calculate_dih_traj
 from biobb_pytorch.mdae.mdfeaturizer import MDFeaturizer
@@ -29,21 +29,6 @@ def _build_cart_selection(cart_defs: dict) -> str:
         for res, atoms in cart_defs.items()
     )
 
-
-def _hidden_layers(n_features: int, n_cvs: int, n_layers: int):
-    """Compute intermediate hidden layer sizes for encoder and decoder.
-
-    biobb_pytorch builds:
-        encoder = FeedForward([n_features] + encoder_layers + [n_cvs])
-        decoder = FeedForward([n_cvs]      + decoder_layers + [n_features])
-    so encoder_layers/decoder_layers must NOT include the input/output endpoints.
-    """
-    step = max(1, (n_features - n_cvs) // n_layers)
-    encoder_hidden = [max(n_cvs + 1, n_features - i * step) for i in range(1, n_layers)]
-    decoder_hidden = list(reversed(encoder_hidden))
-    return encoder_hidden, decoder_hidden
-
-
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -52,8 +37,6 @@ parser.add_argument("-f", "--traj-file",   required=True, help="Input trajectory
 parser.add_argument("-s", "--top-file",    required=True, help="Topology file (.pdb)")
 parser.add_argument("-o", "--output-file", default="./compressed_traj.pth",
                     help="Output compressed file (default: ./compressed_traj.pth)")
-parser.add_argument("-c", "--config-file", default="./config/config.json",
-                    help="Main config JSON (default: ./config/config.json)")
 parser.add_argument("--stride", type=int, default=1, metavar="N",
                     help="Use every N-th frame (default: 1, all frames)")
 parser.add_argument("--no-ae", action="store_true",
@@ -63,6 +46,9 @@ parser.add_argument("--ae-input",  default=None, metavar="FILE",
                     help="Save AE input features (normalised) to this .npy file")
 parser.add_argument("--ae-output", default=None, metavar="FILE",
                     help="Save AE reconstructed output to this .npy file")
+parser.add_argument("-t", "--compression-type", default="cartesian",
+                    choices=["cartesian", "dihedral", "cg2all"],
+                    help="Compression type (default: cartesian)")
 parser.add_argument("--log-file",  default=None, metavar="FILE",
                     help="JSON log file (default: <output>.log.json)")
 args = parser.parse_args()
@@ -73,10 +59,7 @@ logger.log_input_file(args.traj_file,   label="trajectory")
 logger.log_input_file(args.top_file,    label="topology")
 logger.log_input_file(args.config_file, label="config")
 
-with open(args.config_file) as f:
-    run_config = json.load(f)
-hp               = run_config["hyperparams"]
-compression_type = run_config["compression_type"]
+compression_type = args.compression_type
 
 # ---------------------------------------------------------------------------
 # Featurize
@@ -186,36 +169,19 @@ if args.no_ae:
         z        = raw
         print(f"  Frames: {len(z)}  |  Features: {z.shape[1]}")
 else:
-    n_cvs = hp["latent_dim"]
-    encoder_hidden, decoder_hidden = _hidden_layers(n_features, n_cvs, hp["layers"])
-
     with logger.step("Build model"):
         ae_model = BuildModel(
             input_stats=feat.stats,
             output_model_pth_path=None,
-            properties={
-                "model_type":     model_config["model_type"],
-                "n_cvs":          n_cvs,
-                "encoder_layers": encoder_hidden,
-                "decoder_layers": decoder_hidden,
-                "options": {
-                    "encoder":       model_config["encoder"],
-                    "decoder":       model_config["decoder"],
-                    "optimizer":     {"lr": hp["learning_rate"], "weight_decay": hp["weight_decay"]},
-                    "loss_function": {"loss_type": hp["loss_function"]},
-                },
-            },
+            properties=model_config,
         )
         print(ae_model.model)
 
     with logger.step("Train"):
-        train_props = copy.deepcopy(trainer_config)
-        train_props["Dataset"]["batch_size"] = hp["batch_size"]
-        train_props["Trainer"]["max_epochs"] = hp["num_epochs"]
         tm = TrainModel(
             input_model=ae_model.model,
             input_dataset=feat.dataset,
-            properties=train_props,
+            properties=trainer_config,
         )
         tm.run_training()
 
@@ -223,7 +189,7 @@ else:
         em     = EvaluateModel(
             input_model=ae_model.model,
             input_dataset=feat.dataset,
-            properties={"Dataset": {"batch_size": hp["batch_size"]}},
+            properties=evaluator_config,
         )
         em_out = em.run_evaluation()
         z      = em_out["z"]
@@ -261,7 +227,7 @@ with logger.step("Save"):
         "model":               ae_model.model if ae_model is not None else None,
         "compressed_traj":     z,
         "stats":               feat.stats,
-        "hyperparams":         hp,
+        "hyperparams":         model_config,
         "topology":            traj_ref[0],
         "compressed_topology": compressed_topology,
         "compression_type":    compression_type,

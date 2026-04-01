@@ -3,6 +3,11 @@
     "n_cvs": 64,
     "encoder_layers": [512, 256, 128],
     "decoder_layers": [128, 256, 512],
-    "encoder": {"activation": "relu", "last_layer_activation": false},
-    "decoder": {"activation": "relu", "last_layer_activation": "sigmoid"}
+    "options": {
+        "encoder":       {"activation": "relu", "last_layer_activation": false},
+        "decoder":       {"activation": "relu", "last_layer_activation": "sigmoid"},
+        "optimizer":     {"lr": 0.001, "weight_decay": 1e-9},
+        "loss_function": {"loss_type": "MSELoss"}
+    }
 }
+ 
