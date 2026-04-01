@@ -57,7 +57,6 @@ log_path = args.log_file or (os.path.splitext(args.output_file)[0] + ".log.json"
 logger   = RunLogger(log_path, run_type="compress", args=vars(args))
 logger.log_input_file(args.traj_file,   label="trajectory")
 logger.log_input_file(args.top_file,    label="topology")
-logger.log_input_file(args.config_file, label="config")
 
 compression_type = args.compression_type
 
