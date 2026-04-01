@@ -4,11 +4,12 @@ channels:
   - salilab
   - bioconda
   - conda-forge
+  - dglteam
 dependencies:
   - dgl
   - cudatoolkit
   - python=3.12
-  - scikit-learn==1.7.2
+  - scikit-learn
   - ipykernel
   - modeller
   - biobb_structure_utils
