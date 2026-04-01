@@ -13,6 +13,7 @@ dependencies:
   - ipykernel
   - modeller
   - biobb_structure_utils
+  - biobb_io
   - pip
   - pip:
     - git+https://github.com/bioexcel/biobb_pytorch@dev
