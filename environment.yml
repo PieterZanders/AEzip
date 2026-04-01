@@ -12,6 +12,7 @@ dependencies:
   - scikit-learn
   - ipykernel
   - modeller
+  - mdtraj
   - biobb_structure_utils
   - biobb_io
   - pip
